@@ -303,6 +303,23 @@ if ($campanha) :
             right: 5px;
         }
     }
+  .gma-material-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Ajuste para o lightbox suportar vídeo */
+.lightbox-content.video {
+    width: 80%;
+    height: 80%;
+}
+
+.lightbox-content video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
 </style>
 
 <div class="gma-container">
@@ -315,9 +332,18 @@ if ($campanha) :
                     <div class="swiper-slide">
                         <div class="gma-material status-<?php echo esc_attr($material->status_aprovacao ?? 'pendente'); ?>" data-material-id="<?php echo esc_attr($material->id); ?>">
                             <div class="gma-material-image-container">
-                                <img class="gma-material-image lightbox-trigger" src="<?php echo esc_url($material->imagem_url); ?>" alt="Material">
-                                <span class="gma-material-zoom" title="Ampliar imagem">🔍</span>
-                            </div>
+    <?php if ($material->tipo_midia === 'video'): ?>
+        <video class="gma-material-video" controls>
+            <source src="<?php echo esc_url($material->video_url); ?>" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    <?php else: ?>
+        <img class="gma-material-image lightbox-trigger" 
+             src="<?php echo esc_url($material->imagem_url); ?>" 
+             alt="Material">
+        <span class="gma-material-zoom" title="Ampliar imagem">🔍</span>
+    <?php endif; ?>
+</div>
                             <div class="gma-material-content">
                                 <p class="gma-copy"><?php echo wp_kses_post($material->copy ?? ''); ?></p>
                                 <p class="gma-status">Status: <?php echo esc_html(ucfirst($material->status_aprovacao ?? 'Pendente')); ?></p>
@@ -408,7 +434,25 @@ function gma_initialize_swiper() {
         swiper.on('slideChange', function() {
             $('.gma-edicao').hide(); // Fecha a caixa de edição ao mudar de slide
         });
+    });// Lightbox
+    $('.lightbox-trigger, .gma-material-video').click(function() {
+        var isVideo = $(this).is('video');
+        var source = isVideo ? $(this).find('source').attr('src') : $(this).attr('src');
+        
+        if (isVideo) {
+            $('#lightboxImage').replaceWith('<video controls autoplay><source src="' + source + '" type="video/mp4"></video>');
+            $('#imageLightbox .lightbox-content').addClass('video');
+        } else {
+            if ($('#lightboxImage').is('video')) {
+                $('#lightboxImage').replaceWith('<img class="lightbox-content" id="lightboxImage">');
+            }
+            $('#lightboxImage').attr('src', source);
+            $('#imageLightbox .lightbox-content').removeClass('video');
+        }
+        
+        $('#imageLightbox').show();
     });
+});
     </script>
     <?php
 }
