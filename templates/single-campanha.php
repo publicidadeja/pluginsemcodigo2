@@ -41,16 +41,37 @@ if ($campanha) :
     }
 
     .gma-campanha-hero-content {
-      <div class="gma-share-buttons">
-    <a href="#" class="gma-share-button whatsapp" data-share="whatsapp">
-        <i class="fab fa-whatsapp"></i> WhatsApp
-    </a>
-    <a href="#" class="gma-share-button email" data-share="email">
-        <i class="fas fa-envelope"></i> Email
-    </a>
-</div>
-        text-align: center;
-    }
+    text-align: center;
+}
+
+.gma-share-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.gma-share-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.gma-share-button.whatsapp {
+    background-color: #25D366;
+}
+
+.gma-share-button.email {
+    background-color: #EA4335;
+}
+
+.gma-share-button:hover {
+    opacity: 0.9;
+}
 
     .gma-campanha-title {
         font-size: 2.5rem;
@@ -387,11 +408,31 @@ if ($campanha) :
     .gma-campanha-section pre {
         white-space: pre-wrap; /* Preserva espaços em branco e quebra de linha */
     }
+  /* Estilos para vídeo */
+.gma-video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+.gma-video-container iframe,
+.gma-video-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
 </style>
 
 <div class="gma-campanha-wrapper">
     <div class="gma-campanha-hero" style="background-image: url('<?php echo esc_url($campanha->imagem_url); ?>');">
         <div class="gma-campanha-hero-content">
+          
             <h1 class="gma-campanha-title"><?php echo esc_html($campanha->nome); ?></h1>
             <div class="gma-campanha-dates">
                 <span class="gma-date-item"><i class="fas fa-calendar-alt"></i> Criada em: <?php echo esc_html(date('d/m/Y', strtotime($campanha->data_criacao))); ?></span>
