@@ -44,22 +44,24 @@ function gma_criar_tabelas() {
 
     // SQL para tabela de materiais atualizada
     $sql_materiais = "CREATE TABLE $tabela_materiais (
-        id mediumint(9) NOT NULL AUTO_INCREMENT,
-        campanha_id mediumint(9) NOT NULL,
-        imagem_url varchar(255) NOT NULL,
-        copy text NOT NULL,
-        link_canva varchar(255),
-        arquivo_id bigint(20) unsigned DEFAULT NULL,
-        status_aprovacao VARCHAR(20) NOT NULL DEFAULT 'pendente',
-        feedback TEXT,
-        data_criacao datetime DEFAULT CURRENT_TIMESTAMP,
-        pasta_id mediumint(9) DEFAULT NULL,
-        tipo_midia varchar(50) DEFAULT 'imagem',
-        versao_atual int DEFAULT 1,
-        PRIMARY KEY (id),
-        FOREIGN KEY (campanha_id) REFERENCES $tabela_campanhas(id) ON DELETE CASCADE,
-        FOREIGN KEY (pasta_id) REFERENCES $tabela_pastas(id) ON DELETE SET NULL
-    ) $charset_collate;";
+    id mediumint(9) NOT NULL AUTO_INCREMENT,
+    campanha_id mediumint(9) NOT NULL,
+    imagem_url varchar(255) NOT NULL,
+    copy text NOT NULL,
+    link_canva varchar(255),
+    arquivo_id bigint(20) unsigned DEFAULT NULL,
+    status_aprovacao VARCHAR(20) NOT NULL DEFAULT 'pendente',
+    feedback TEXT,
+    data_criacao datetime DEFAULT CURRENT_TIMESTAMP,
+    pasta_id mediumint(9) DEFAULT NULL,
+    tipo_midia varchar(50) DEFAULT 'imagem',
+    video_url varchar(255) DEFAULT NULL,
+    imagens_carrossel text DEFAULT NULL,
+    versao_atual int DEFAULT 1,
+    PRIMARY KEY (id),
+    FOREIGN KEY (campanha_id) REFERENCES $tabela_campanhas(id) ON DELETE CASCADE,
+    FOREIGN KEY (pasta_id) REFERENCES $tabela_pastas(id) ON DELETE SET NULL
+) $charset_collate;";
 
     // SQL para tabela de estatísticas
     $sql_estatisticas = "CREATE TABLE $tabela_estatisticas (
@@ -159,7 +161,7 @@ function gma_criar_tabelas() {
  */
 function gma_verificar_versao_banco() {
     $versao_atual = get_option('gma_db_version', '1.0');
-    $nova_versao = '2.0';
+    $nova_versao = '2.0'; // Altere para '2.1'
     
     if (version_compare($versao_atual, $nova_versao, '<')) {
         gma_criar_tabelas();
