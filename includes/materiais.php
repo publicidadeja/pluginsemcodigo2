@@ -5,7 +5,18 @@ function gma_criar_material($campanha_id, $imagem_url, $copy, $link_canva = '', 
     global $wpdb;
     $tabela = $wpdb->prefix . 'gma_materiais';
 
-    // Inicia a transação
+    // Validações básicas
+    if (empty($campanha_id) || !is_numeric($campanha_id)) {
+        error_log('ID de campanha inválido');
+        return false;
+    }
+
+    // Validação específica para vídeo
+    if ($tipo_midia === 'video' && empty($video_url)) {
+        error_log('URL do vídeo é obrigatória para materiais do tipo vídeo');
+        return false;
+    }
+
     $wpdb->query('START TRANSACTION');
 
     try {
@@ -15,19 +26,22 @@ function gma_criar_material($campanha_id, $imagem_url, $copy, $link_canva = '', 
             return false;
         }
 
+        // Preparar dados do material
         $dados = array(
-            'campanha_id' => $campanha_id,
-            'imagem_url' => $imagem_url,
-            'copy' => $copy,
-            'link_canva' => $link_canva,
-            'arquivo_id' => $arquivo_id,
+            'campanha_id' => absint($campanha_id),
+            'imagem_url' => esc_url_raw($imagem_url),
+            'copy' => wp_kses_post($copy),
+            'link_canva' => esc_url_raw($link_canva),
+            'arquivo_id' => $arquivo_id ? absint($arquivo_id) : null,
             'status_aprovacao' => 'pendente',
-            'tipo_midia' => $tipo_midia,
-            'video_url' => $video_url,
-            'imagens_carrossel' => is_array($imagens_carrossel) ? serialize($imagens_carrossel) : '',
-            'data_criacao' => current_time('mysql')
+            'tipo_midia' => sanitize_text_field($tipo_midia),
+            'video_url' => $tipo_midia === 'video' ? esc_url_raw($video_url) : '',
+            'imagens_carrossel' => maybe_serialize($imagens_carrossel),
+            'data_criacao' => current_time('mysql'),
+            'versao_atual' => 1
         );
 
+        // Definir formatos para cada campo
         $formatos = array(
             '%d', // campanha_id
             '%s', // imagem_url
@@ -38,17 +52,42 @@ function gma_criar_material($campanha_id, $imagem_url, $copy, $link_canva = '', 
             '%s', // tipo_midia
             '%s', // video_url
             '%s', // imagens_carrossel
-            '%s'  // data_criacao
+            '%s', // data_criacao
+            '%d'  // versao_atual
         );
 
+        // Inserir o material
         $resultado = $wpdb->insert($tabela, $dados, $formatos);
         $insert_id = $wpdb->insert_id;
 
         if ($resultado && $insert_id) {
-            $wpdb->query('COMMIT');
-            return $insert_id;
+            // Criar primeira versão do material
+            $tabela_versoes = $wpdb->prefix . 'gma_versoes';
+            $dados_versao = array(
+                'material_id' => $insert_id,
+                'versao' => 1,
+                'imagem_url' => $dados['imagem_url'],
+                'copy' => $dados['copy'],
+                'data_criacao' => current_time('mysql'),
+                'modificado_por' => get_current_user_id(),
+                'descricao_mudancas' => 'Versão inicial do material'
+            );
+
+            $formatos_versao = array('%d', '%d', '%s', '%s', '%s', '%d', '%s');
+            
+            $resultado_versao = $wpdb->insert($tabela_versoes, $dados_versao, $formatos_versao);
+
+            if ($resultado_versao) {
+                $wpdb->query('COMMIT');
+                return $insert_id;
+            } else {
+                $wpdb->query('ROLLBACK');
+                error_log('Erro ao criar versão inicial do material');
+                return false;
+            }
         } else {
             $wpdb->query('ROLLBACK');
+            error_log('Erro ao inserir material no banco de dados');
             return false;
         }
     } catch (Exception $e) {
