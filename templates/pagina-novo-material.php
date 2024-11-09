@@ -313,6 +313,26 @@ wp_localize_script('jquery', 'gma_ajax', array(
         justify-content: center;
     }
 }
+  /* Adicione ao CSS existente */
+#campo-video {
+    margin-top: 15px;
+}
+
+.gma-video-preview {
+    margin-top: 10px;
+    max-width: 300px;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background: #f5f5f5;
+    padding: 10px;
+}
+
+.gma-video-preview video {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+  
 </style>
 
 <script>
@@ -361,35 +381,48 @@ jQuery(document).ready(function($) {
     });
 
     // Upload de vídeo
-    $('#gma-video-upload-btn').click(function(e) {
-        e.preventDefault();
-        
-        var video_uploader = wp.media({
-            title: 'Selecionar Vídeo',
-            button: {
-                text: 'Usar este vídeo'
-            },
-            multiple: false,
-            library: {
-                type: 'video'
-            }
-        });
-
-        video_uploader.on('select', function() {
-            var attachment = video_uploader.state().get('selection').first().toJSON();
-            $('#gma-video-url').val(attachment.url);
-            $('#gma-video-id').val(attachment.id);
-            
-            $('#gma-video-preview').html(`
-                <video width="300" controls>
-                    <source src="${attachment.url}" type="${attachment.mime}">
-                    Seu navegador não suporta o elemento de vídeo.
-                </video>
-            `);
-        });
-
-        video_uploader.open();
+    // Substitua o código existente do upload de vídeo por este:
+$('#gma-video-upload-btn').click(function(e) {
+    e.preventDefault();
+    
+    var video_uploader = wp.media({
+        title: 'Selecionar Vídeo',
+        button: {
+            text: 'Usar este vídeo'
+        },
+        multiple: false,
+        library: {
+            type: [ 'video/mp4', 'video/webm', 'video/ogg' ]
+        }
     });
+
+    video_uploader.on('select', function() {
+        var attachment = video_uploader.state().get('selection').first().toJSON();
+        $('#gma-video-url').val(attachment.url);
+        $('#gma-video-id').val(attachment.id);
+        
+        // Adiciona preview do vídeo
+        $('#gma-video-preview').html(`
+            <video width="300" controls>
+                <source src="${attachment.url}" type="${attachment.mime}">
+                Seu navegador não suporta o elemento de vídeo.
+            </video>
+        `);
+    });
+
+    video_uploader.open();
+});
+
+// Adicione esta validação antes do submit do formulário
+$('#gma-material-form').on('submit', function(e) {
+    const tipoMidia = $('#tipo_midia').val();
+    
+    if (tipoMidia === 'video' && !$('#gma-video-url').val()) {
+        e.preventDefault();
+        alert('Por favor, selecione um vídeo antes de criar o material.');
+        return false;
+    }
+});
 
     // Gerenciamento do carrossel
     let imagensCarrossel = [];
@@ -524,5 +557,17 @@ jQuery(document).ready(function($) {
             }
         });
     };
+});
+  // Adicione este código antes do submit do formulário
+$('#gma-material-form').on('submit', function(e) {
+    const tipoMidia = $('#tipo_midia').val();
+    
+    if (tipoMidia === 'video') {
+        if (!$('#gma-video-url').val()) {
+            e.preventDefault();
+            alert('Por favor, selecione um vídeo antes de criar o material.');
+            return false;
+        }
+    }
 });
 </script>
